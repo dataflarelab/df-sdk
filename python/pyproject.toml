@@ -19,7 +19,7 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://dataflare.ai"
+Homepage = "https://dataflare.com"
 Repository = "https://github.com/dataflarelab/df-sdk"
 
 [project.optional-dependencies]
