@@ -1,8 +1,9 @@
 name: Upload Python Package to PyPI
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - "v*"
 
 jobs:
   deploy:
@@ -37,4 +38,6 @@ jobs:
     - name: Publish package
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
+        user: __token__
+        password: ${{ secrets.PYPI_API_TOKEN }}
         packages-dir: python/dist/
