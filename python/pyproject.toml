@@ -34,3 +34,6 @@ packages = ["src/df"]
 
 [tool.hatch.version]
 source = "vcs"
+
+[tool.hatch.version.raw-options]
+search_parent_directories = true
