@@ -12,7 +12,11 @@ The official Python SDK for the **DataFlare API**.
 ## Installation
 
 ```bash
+# Standard REST client
 pip install dataflare-sdk
+
+# Include gRPC support
+pip install "dataflare-sdk[grpc]"
 ```
 
 ## Authentication
@@ -45,7 +49,7 @@ try:
         for doc in client.datasets.stream("legal", search_term="التأمين", limit=100):
             print(f"Doc category: {doc.category} | Title: {doc.title} | Summary: {doc.summary} | Decision: {doc.decision}")
             
-            # Helper to download the raw PDF to disk natively
+            # Helper to download the raw File to disk natively
             if doc.source_url:
                 client.datasets.download_file(
                     doc.source_url, 
