@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.9"
 
 [project.urls]
-Homepage = "https://dataflare.ai"
+Homepage = "https://dataflare.com"
 Repository = "https://github.com/dataflarelab/df-sdk"
 
 license = "MIT"

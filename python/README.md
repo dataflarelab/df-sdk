@@ -1,4 +1,4 @@
-# DF API Python SDK `<a href="https://pypi.org/project/dataflare-sdk/"><img alt="PyPI" src="https://img.shields.io/pypi/v/dataflare-sdk?color=blue"></a>`
+# DF API Python SDK [![PyPI](https://img.shields.io/pypi/v/dataflare-sdk?color=blue)](https://pypi.org/project/dataflare-sdk/)
 
 The official Python SDK for the **DataFlare API**.
 
