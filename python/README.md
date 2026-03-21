@@ -43,7 +43,7 @@ try:
         
         # Generator handles pagination constraints completely
         for doc in client.datasets.stream("legal", search_term="التأمين", limit=100):
-            print(f"Doc ID: {doc.id} | Metadata: {doc.metadata}")
+            print(f"Doc category: {doc.category} | Title: {doc.title} | Summary: {doc.summary} | Decision: {doc.decision}")
             
             # Helper to download the raw PDF to disk natively
             if doc.source_url:
