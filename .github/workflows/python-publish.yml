@@ -10,7 +10,7 @@ jobs:
     
     environment:
       name: pypi
-      url: https://pypi.org/p/df-api
+      url: https://pypi.org/p/dataflare-sdk
 
     permissions:
       id-token: write # IMPORTANT: mandatory for trusted publishing

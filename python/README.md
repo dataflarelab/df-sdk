@@ -1,4 +1,4 @@
-# DF API Python SDK `<a href="https://pypi.org/project/df-api/"><img alt="PyPI" src="https://img.shields.io/pypi/v/df-api?color=blue"></a>`
+# DF API Python SDK `<a href="https://pypi.org/project/dataflare-sdk/"><img alt="PyPI" src="https://img.shields.io/pypi/v/dataflare-sdk?color=blue"></a>`
 
 The official Python SDK for the **DataFlare API**.
 
@@ -12,7 +12,7 @@ The official Python SDK for the **DataFlare API**.
 ## Installation
 
 ```bash
-pip install df-api
+pip install dataflare-sdk
 ```
 
 ## Quick Start
