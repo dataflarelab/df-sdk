@@ -1,16 +1,10 @@
-"""
-DF SDK
-Official Python SDK for the DataFlare API.
-"""
-
 from .client import DFClient
 from .exceptions import APIError, AuthenticationError, RateLimitError
 
-__version__ = "0.1.0"
-__all__ = [
-    "DFClient",
-    "APIError",
-    "AuthenticationError",
-    "RateLimitError",
-    "__version__",
-]
+try:
+    from importlib.metadata import version
+    __version__ = version("dataflare-sdk")
+except Exception:
+    __version__ = "unknown"
+
+__all__ = ["DFClient", "APIError", "AuthenticationError", "RateLimitError", "__version__"]
