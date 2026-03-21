@@ -12,8 +12,8 @@ class DatasetQueryRequest(BaseModel):
 
 
 class DatasetDocument(BaseModel):
-    id: str = Field(alias="_id")
-    text: str
+    id: Optional[str] = Field(default=None, alias="_id")
+    text: Optional[str] = None
     metadata: Optional[Dict[str, Any]] = Field(default_factory=dict)
     source_url: Optional[str] = None
     created_at: Optional[datetime] = None
