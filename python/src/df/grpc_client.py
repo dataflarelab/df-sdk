@@ -62,10 +62,21 @@ class DFGRPCClient:
         # We pass {"root_certificates": None} to bypass a bug in grpc-requests v0.1.21
         # where `if credentials:` evaluates to False for `{}` and passes None to **kwargs.
         self._interceptor = APIKeyInterceptor(self.api_key)
+
+        # Performance: HTTP/2 keepalives to prevent idle connection drops behind load balancers
+        options = [
+            ("grpc.keepalive_time_ms", 60000),
+            ("grpc.keepalive_timeout_ms", 20000),
+            ("grpc.keepalive_permit_without_calls", 1),
+            ("grpc.http2.max_pings_without_data", 0),
+        ]
+
         self._client = GrpcReflectionClient(
             endpoint=self.target,
             ssl=True,
+            lazy=True,  # Performance: Lazy load reflection schemas on first use
             credentials={"root_certificates": None},
+            channel_options=options,
             interceptors=[self._interceptor],
         )
 
