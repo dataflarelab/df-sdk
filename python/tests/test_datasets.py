@@ -78,7 +78,7 @@ def test_authentication_error(client: DFClient):
 @respx.mock
 def test_download_file(client: DFClient):
     # Tests that download_file writes bytes successfully
-    url = "https://cdn.example.com/doc.pdf"
+    url = "https://cdn.dataflare.com/doc.pdf"
     respx.get(url).mock(return_value=httpx.Response(200, content=b"fake-pdf-content"))
 
     with patch("builtins.open", mock_open()) as mocked_file:

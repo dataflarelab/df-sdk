@@ -1,7 +1,14 @@
 import os
 import httpx
 from typing import Optional
+import importlib.metadata
+
 from .services.datasets import DatasetService
+
+try:
+    __version__ = importlib.metadata.version("dataflare-sdk")
+except importlib.metadata.PackageNotFoundError:
+    __version__ = "unknown"
 
 
 class DFClient:
@@ -13,7 +20,7 @@ class DFClient:
     def __init__(
         self,
         api_key: Optional[str] = None,
-        base_url: str = "https://api.example.com",
+        base_url: str = "https://api.dataflare.com",
         timeout: float = 30.0,
         max_retries: int = 3,
     ):
@@ -40,7 +47,7 @@ class DFClient:
             headers={
                 "X-API-Key": self.api_key,
                 "Accept": "application/json",
-                "User-Agent": "df-python/0.1.0",
+                "User-Agent": f"df-python/{__version__}",
                 "Accept-Encoding": "gzip, deflate, br",
             },
         )
