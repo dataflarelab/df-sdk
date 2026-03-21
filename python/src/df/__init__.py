@@ -8,8 +8,20 @@ try:
 except Exception:
     __version__ = "unknown"
 
+try:
+    from .grpc_client import DFGRPCClient
+except ImportError:
+
+    class DFGRPCClient:  # type: ignore
+        def __init__(self, *args, **kwargs):
+            raise ImportError(
+                "Please install the SDK with gRPC support: pip install 'dataflare-sdk[grpc]'"
+            )
+
+
 __all__ = [
     "DFClient",
+    "DFGRPCClient",
     "APIError",
     "AuthenticationError",
     "RateLimitError",
