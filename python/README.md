@@ -15,12 +15,24 @@ The official Python SDK for the **DataFlare API**.
 pip install dataflare-sdk
 ```
 
-## Quick Start
+## Authentication
 
-You will need a DataFlare API Key. The easiest way is setting an environment variable:
+You will need a DataFlare API Key. The SDK provides two ways to configure it securely:
+
+### 1. Auto-discover from Environment (Recommended)
+Set the `DF_API_KEY` system environment variable (or load it from a local `.env` using `python-dotenv`):
 ```bash
 export DF_API_KEY="dfk_abc123"
 ```
+
+### 2. Direct Explicit Injection
+If you pull secrets from an external vault, pass it directly into the constructor:
+```python
+from df import DFClient
+client = DFClient(api_key="dfk_your_secret_key...")
+```
+
+## Quick Start
 
 ```python
 from df import DFClient, AuthenticationError
