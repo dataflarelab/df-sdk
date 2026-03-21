@@ -16,7 +16,7 @@ type DFGRPCClient struct {
 	Conn   *grpc.ClientConn
 }
 
-// NewGRPCClient creates a new DFGRPCClient.
+// NewGRPCClient creates a new DFGRPCClient for high-performance binary streaming.
 func NewGRPCClient(target string) (*DFGRPCClient, error) {
 	apiKey := os.Getenv("DF_API_KEY")
 	if target == "" {
@@ -35,7 +35,7 @@ func NewGRPCClient(target string) (*DFGRPCClient, error) {
 	}, nil
 }
 
-// Call performs a gRPC call with the API key in the metadata.
+// Call performs a gRPC call with the API key injected into the request metadata.
 func (c *DFGRPCClient) Call(ctx context.Context, method string, req interface{}, resp interface{}) error {
 	ctx = metadata.AppendToOutgoingContext(ctx, "x-api-key", c.APIKey)
 	return c.Conn.Invoke(ctx, "/dfapi.v1.DatasetService/"+method, req, resp)

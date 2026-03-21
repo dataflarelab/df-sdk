@@ -129,7 +129,7 @@ func (s *DatasetService) Query(dataset string, params map[string]interface{}) (*
 	return &datasetResp, nil
 }
 
-// Stream performs a streaming paginated query on a dataset.
+// Stream performs a streaming paginated query on a dataset, returning a document channel and an error channel.
 func (s *DatasetService) Stream(dataset string, params map[string]interface{}) (<-chan models.Document, <-chan error) {
 	docChan := make(chan models.Document)
 	errChan := make(chan error, 1)
