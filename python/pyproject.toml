@@ -8,11 +8,6 @@ version = "0.1.0"
 description = "Official Python SDK for the DataFlare API"
 readme = "README.md"
 requires-python = ">=3.9"
-
-[project.urls]
-Homepage = "https://dataflare.com"
-Repository = "https://github.com/dataflarelab/df-sdk"
-
 license = "MIT"
 authors = [
   { name = "DataFlare Lab", email = "oss@dataflarelab.com" }
@@ -22,6 +17,10 @@ dependencies = [
     "pydantic>=2.0.0",
     "tenacity>=8.0.0"
 ]
+
+[project.urls]
+Homepage = "https://dataflare.ai"
+Repository = "https://github.com/dataflarelab/df-sdk"
 
 [project.optional-dependencies]
 dev = [
