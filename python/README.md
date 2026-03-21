@@ -55,3 +55,26 @@ try:
 except AuthenticationError:
     print("Invalid API Key.")
 ```
+
+## High-Performance gRPC Client
+
+For environments requiring persistent connections and reduced latency, the SDK provides a dynamic gRPC client that works right out of the box using Server Reflection.
+
+```python
+from df import DFGRPCClient, AuthenticationError
+
+# Requires installing extra dependencies: pip install dataflare-sdk[grpc]
+try:
+    with DFGRPCClient() as client:
+        # Perform unary RPC instead of REST natively
+        results, next_cursor = client.datasets.query(
+            dataset="legal", 
+            limit=10,
+        )
+        
+        for doc in results:
+            print(f"Title: {getattr(doc, 'title', None)} | Summary: {getattr(doc, 'summary', None)}")
+
+except AuthenticationError:
+    print("Invalid API Key.")
+```
