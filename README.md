@@ -1,5 +1,9 @@
 # Dataflare SDKs
 
+[![Python SDK Tests](https://github.com/dataflarelab/df-sdk/actions/workflows/python-test.yml/badge.svg)](https://github.com/dataflarelab/df-sdk/actions/workflows/python-test.yml)
+[![TypeScript SDK Tests](https://github.com/dataflarelab/df-sdk/actions/workflows/typescript-test.yml/badge.svg)](https://github.com/dataflarelab/df-sdk/actions/workflows/typescript-test.yml)
+[![Go SDK Tests](https://github.com/dataflarelab/df-sdk/actions/workflows/go-test.yml/badge.svg)](https://github.com/dataflarelab/df-sdk/actions/workflows/go-test.yml)
+
 Official, professional-grade SDKs for the Dataflare API. This monorepo contains high-performance clients for Python, TypeScript, and Go, optimized for data pipelines and AI-native applications.
 
 ## 🚀 Unified Features
