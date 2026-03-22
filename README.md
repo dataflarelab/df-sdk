@@ -3,6 +3,7 @@
 [![Python SDK Tests](https://github.com/dataflarelab/df-sdk/actions/workflows/python-test.yml/badge.svg)](https://github.com/dataflarelab/df-sdk/actions/workflows/python-test.yml)
 [![TypeScript SDK Tests](https://github.com/dataflarelab/df-sdk/actions/workflows/typescript-test.yml/badge.svg)](https://github.com/dataflarelab/df-sdk/actions/workflows/typescript-test.yml)
 [![Go SDK Tests](https://github.com/dataflarelab/df-sdk/actions/workflows/go-test.yml/badge.svg)](https://github.com/dataflarelab/df-sdk/actions/workflows/go-test.yml)
+[![MCP Server Tests](https://github.com/dataflarelab/df-sdk/actions/workflows/mcp-test.yml/badge.svg)](https://github.com/dataflarelab/df-sdk/actions/workflows/mcp-test.yml)
 
 Official, professional-grade SDKs for the Dataflare API. This monorepo contains high-performance clients for Python, TypeScript, and Go, optimized for data pipelines and AI-native applications.
 
@@ -12,6 +13,7 @@ Official, professional-grade SDKs for the Dataflare API. This monorepo contains 
 - **High-Performance gRPC**: Binary streaming with server reflection for zero-latency pipelines.
 - **Resilient REST**: Automated exponential backoff and specialized "Pro Exceptions" (Auth, Rate Limit, API Errors).
 - **Zod & Pydantic**: Runtime type safety and validation across all languages.
+- **AI-Native MCP**: Model Context Protocol (MCP) server for native integration with LLM agents (Claude, etc.).
 
 ## 📦 Installation
 
@@ -33,9 +35,11 @@ go get github.com/dataflarelab/df-sdk/go
 ```
 [Go Documentation](go/README.md)
 
-## 🌐 Developer Portal
-
-For full integration guides, architectural deep-dives, and interactive API references, visit the [Dataflare Developer Portal](https://dataflare.com/developers).
+### MCP Server
+```bash
+npx -y dataflare-mcp-server
+```
+[MCP Documentation](mcp/README.md)
 
 ## 🛡️ License
 
