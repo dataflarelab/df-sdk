@@ -39,4 +39,10 @@ For full integration guides, architectural deep-dives, and interactive API refer
 
 ## 🛡️ License
 
-Commercial / Enterprise License. See [LICENSE](LICENSE) for details.
+The Dataflare SDK is open source under the [MIT License](./LICENSE) — free to use,
+modify, and distribute in any project, commercial or otherwise.
+
+> **Dataflare data and API access are commercial services.**
+> A valid API key (`DF_API_KEY`) and active subscription are required to call the
+> Dataflare API. See the [Developer Portal](https://dataflare.com/developers) for
+> pricing and access.

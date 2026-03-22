@@ -59,3 +59,10 @@ try {
   }
 }
 ```
+
+## 🛡️ License
+
+MIT — see the [root LICENSE file](../LICENSE) for full terms.
+
+> **Note**: The SDK is free and open source. Dataflare API access requires a paid
+> subscription. See [dataflare.com/developers](https://dataflare.com/developers).

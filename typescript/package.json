@@ -29,7 +29,7 @@
     "llm"
   ],
   "author": "Dataflare Lab",
-  "license": "Apache-2.0",
+  "license": "MIT",
   "dependencies": {
     "@grpc/grpc-js": "^1.14.3",
     "@grpc/proto-loader": "^0.8.0",
