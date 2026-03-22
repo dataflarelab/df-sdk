@@ -8,7 +8,7 @@ export function toMCPError(error: unknown): string {
     return "Dataflare API rate limit reached. Wait a moment before retrying.";
   }
   if (error instanceof APIError) {
-    return `Dataflare API error: ${error.message}`;
+    return `Dataflare API error: ${(error as Error).message}`;
   }
   if (error instanceof Error) {
     return `Unexpected error: ${error.message}`;
