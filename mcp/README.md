@@ -1,4 +1,4 @@
-# Dataflare MCP Server
+# Dataflare MCP Server [![npm version](https://img.shields.io/npm/v/dataflare-mcp-server?color=blue)](https://www.npmjs.com/package/dataflare-mcp-server)
 
 MCP server for the Dataflare API. It exposes Dataflare's dataset search and document retrieval capabilities as tools that AI agents (like Claude Desktop) can call natively.
 

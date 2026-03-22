@@ -1,4 +1,4 @@
-# Dataflare TypeScript SDK
+# Dataflare TypeScript SDK [![npm version](https://img.shields.io/npm/v/dataflare-sdk?color=blue)](https://www.npmjs.com/package/dataflare-sdk)
 
 Official TypeScript client for the Dataflare API. High-performance, type-safe, and resilient.
 

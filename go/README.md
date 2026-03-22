@@ -1,4 +1,4 @@
-# Dataflare Go SDK
+# Dataflare Go SDK [![Go Reference](https://pkg.go.dev/badge/github.com/dataflarelab/df-sdk/go.svg)](https://pkg.go.dev/github.com/dataflarelab/df-sdk/go)
 
 Official Go client for the Dataflare API. High-concurrency, idiomatic, and performance-optimized with native channel-based streaming and gRPC.
 
