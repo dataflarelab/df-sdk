@@ -48,7 +48,6 @@ class DFClient:
                 "X-API-Key": self.api_key,
                 "Accept": "application/json",
                 "User-Agent": f"df-python/{__version__}",
-                "Accept-Encoding": "gzip, deflate, br",
             },
         )
 
