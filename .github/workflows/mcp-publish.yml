@@ -3,7 +3,7 @@ name: Publish MCP Server to NPM
 on:
   push:
     tags:
-      - 'v*'
+      - 'mcp/v*'
 
 jobs:
   publish:

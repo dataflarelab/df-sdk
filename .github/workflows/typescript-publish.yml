@@ -3,7 +3,7 @@ name: Publish TypeScript SDK to NPM
 on:
   push:
     tags:
-      - 'v*'
+      - 'ts/v*'
 
 jobs:
   publish:
