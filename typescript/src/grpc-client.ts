@@ -51,11 +51,10 @@ export class DFGRPCClient {
     }
 
     const reflection = this.getReflection();
-    const descriptor = await reflection.getDescriptorBySymbol(serviceName);
+    const descriptor = await reflection.getDescriptorBySymbol(serviceName, this.getMetadata() as any);
     const packageObject = descriptor.getPackageObject();
-    
-    // The serviceName might be 'dfapi.v1.DatasetService'
-    // We need to traverse the packageObject to find the actual Service constructor
+
+    // Traverse the packageObject to find the actual Service constructor
     const parts = serviceName.split('.');
     let current: any = packageObject;
     for (const part of parts) {
@@ -70,6 +69,25 @@ export class DFGRPCClient {
     const client = new ServiceClient(this.target, grpc.credentials.createSsl());
     this._services[serviceName] = client;
     return client;
+  }
+
+  /**
+   * Helper to make a gRPC call and return a Promise.
+   */
+  public async call<T = any>(serviceName: string, methodName: string, request: any): Promise<T> {
+    const service = await this.getService(serviceName);
+    if (!service[methodName] || typeof service[methodName] !== 'function') {
+      throw new Error(`Method ${methodName} not found on service ${serviceName}`);
+    }
+
+    return new Promise((resolve, reject) => {
+      service[methodName].call(service, request, this.getMetadata(), (err: any, response: T) => {
+        if (err) {
+          return reject(err);
+        }
+        resolve(response);
+      });
+    });
   }
 
   public getMetadata(): grpc.Metadata {
@@ -88,6 +106,64 @@ export class DFGRPCClient {
   }
 }
 
+/**
+ * Utility for handling google.protobuf.Value and Struct types.
+ * Handles both snake_case (standard) and camelCase (some environments).
+ */
+export class ProtobufUtils {
+  /**
+   * Unpacks a google.protobuf.Value into a JS primitive or object.
+   */
+  public static unpackValue(value: any): any {
+    if (!value) return undefined;
+
+    // Check for snake_case fields
+    if (value.string_value !== undefined) return value.string_value;
+    if (value.number_value !== undefined) return value.number_value;
+    if (value.bool_value !== undefined) return value.bool_value;
+    if (value.struct_value !== undefined) return this.unpackStruct(value.struct_value);
+    if (value.list_value !== undefined) {
+      return (value.list_value.values || []).map((v: any) => this.unpackValue(v));
+    }
+    if (value.null_value !== undefined) return null;
+
+    // Check for camelCase fields (compatibility)
+    if (value.stringValue !== undefined) return value.stringValue;
+    if (value.numberValue !== undefined) return value.numberValue;
+    if (value.boolValue !== undefined) return value.boolValue;
+    if (value.structValue !== undefined) return this.unpackStruct(value.structValue);
+    if (value.listValue !== undefined) {
+      return (value.listValue.values || []).map((v: any) => this.unpackValue(v));
+    }
+    if (value.nullValue !== undefined) return null;
+
+    return undefined;
+  }
+
+  /**
+   * Unpacks a google.protobuf.Struct into a plain JS object.
+   */
+  public static unpackStruct(struct: any): any {
+    if (!struct || !struct.fields) return {};
+    const result: any = {};
+
+    // gRPC-JS reflection sometimes returns fields as an array of {key, value}
+    if (Array.isArray(struct.fields)) {
+      for (const entry of struct.fields) {
+        if (entry && entry.key !== undefined) {
+          result[entry.key] = this.unpackValue(entry.value);
+        }
+      }
+    } else {
+      // Standard object/map representation
+      for (const [key, value] of Object.entries(struct.fields)) {
+        result[key] = this.unpackValue(value);
+      }
+    }
+    return result;
+  }
+}
+
 export class DatasetGRPCService {
   constructor(private readonly client: DFGRPCClient) {}
 
@@ -103,8 +179,6 @@ export class DatasetGRPCService {
       filters?: Record<string, any>;
     } = {}
   ): Promise<[DatasetDocument[], string | undefined]> {
-    const service = await this.client.getService('dfapi.v1.DatasetService');
-    
     const request = {
       dataset,
       limit: options.limit || 10,
@@ -115,20 +189,13 @@ export class DatasetGRPCService {
         : undefined,
     };
 
-    return new Promise((resolve, reject) => {
-      service.Query(request, this.client.getMetadata(), (err: any, response: any) => {
-        if (err) {
-          return reject(err);
-        }
+    const response = await this.client.call('dfapi.v1.DatasetService', 'Query', request);
 
-        const documents: DatasetDocument[] = (response.data || []).map((record: any) => {
-          return {
-            ...record.fields,
-          };
-        });
-
-        resolve([documents, response.next_cursor]);
-      });
+    const documents: DatasetDocument[] = (response.data || []).map((record: any) => {
+      // DataRecord.fields is a google.protobuf.Struct
+      return ProtobufUtils.unpackStruct(record.fields);
     });
+
+    return [documents, response.next_cursor];
   }
 }
