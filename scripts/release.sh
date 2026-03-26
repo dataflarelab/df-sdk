@@ -3,23 +3,33 @@ set -euo pipefail
 
 # =============================================================================
 # df-sdk release script
-# Usage: ./scripts/release.sh <version> [--dry-run]
+# Usage: ./scripts/release.sh <version> [--dry-run] [--python-only]
 #
 # This script:
 #   1. Validates the version is semver
-#   2. Bumps typescript/package.json and mcp/package.json (including the
-#      dataflare-sdk peer dep in mcp)
-#   3. Commits all changes
-#   4. Creates annotated tags: py/vX.Y.Z  ts/vX.Y.Z  mcp/vX.Y.Z
-#   5. Pushes the commit + all tags
+#   2. Bumps versions in typescript/ and mcp/ (skipped if --python-only)
+#   3. Commits all changes (skipped if no changes or --python-only)
+#   4. Removes OLD tags if they exist (local + remote) to handle bugs/retries
+#   5. Creates annotated tags: py/vX.Y.Z (and ts/v*, mcp/v* if not --python-only)
+#   6. Pushes the commit + tags
 # =============================================================================
 
-VERSION=${1:-}
+VERSION=""
 DRY_RUN=false
+PYTHON_ONLY=false
 
-if [ "${2:-}" = "--dry-run" ]; then
-  DRY_RUN=true
-fi
+# Simple arg parsing
+for arg in "$@"; do
+  case $arg in
+    --dry-run) DRY_RUN=true ;;
+    --python-only) PYTHON_ONLY=true ;;
+    *)
+      if [[ -z "$VERSION" && ! "$arg" =~ ^- ]]; then
+        VERSION=$arg
+      fi
+      ;;
+  esac
+done
 
 # ---------- helpers ----------------------------------------------------------
 
@@ -35,12 +45,26 @@ run() {
   fi
 }
 
+cleanup_tag() {
+  local TAG=$1
+  echo "    - Checking if tag $TAG needs cleanup..."
+  if git tag -l | grep -q "^$TAG$"; then
+    echo "      ✓ Tag $TAG removed locally"
+    run git tag -d "$TAG"
+  fi
+  if ! $DRY_RUN; then
+    # Silence errors if tag doesn't exist on remote
+    git push origin --delete "$TAG" 2>/dev/null || true
+    echo "      ✓ Tag $TAG cleanup attempted on origin"
+  fi
+}
+
 # ---------- validation -------------------------------------------------------
 
 if [ -z "$VERSION" ]; then
   red "Error: version argument is required"
-  echo "Usage: ./scripts/release.sh <version> [--dry-run]"
-  echo "Example: ./scripts/release.sh 0.1.9"
+  echo "Usage: ./scripts/release.sh <version> [--dry-run] [--python-only]"
+  echo "Example: ./scripts/release.sh 0.1.9 --python-only"
   exit 1
 fi
 
@@ -56,72 +80,93 @@ if [ ! -f "scripts/release.sh" ]; then
   exit 1
 fi
 
-# Ensure working tree is clean
-if ! git diff --quiet || ! git diff --staged --quiet; then
-  red "Error: working tree is dirty. Commit or stash changes before releasing."
-  exit 1
+# Ensure working tree is clean (only if we expect to commit)
+if ! $PYTHON_ONLY; then
+  if ! git diff --quiet || ! git diff --staged --quiet; then
+    red "Error: working tree is dirty. Commit or stash changes before releasing."
+    exit 1
+  fi
 fi
 
-# ---------- version bumps ----------------------------------------------------
+# ---------- version bumps (skipped for --python-only) ------------------------
 
-echo ""
-blue "==> Bumping versions to $VERSION"
+if ! $PYTHON_ONLY; then
+  echo ""
+  blue "==> Bumping versions to $VERSION"
 
-# TypeScript SDK — use npm version (no sed, handles JSON safely)
-run npm --prefix typescript version "$VERSION" --no-git-tag-version
-echo "    ✓ typescript/package.json"
+  # TypeScript SDK
+  run npm --prefix typescript version "$VERSION" --no-git-tag-version
+  echo "    ✓ typescript/package.json"
 
-# MCP: bump its own version
-run npm --prefix mcp version "$VERSION" --no-git-tag-version
-echo "    ✓ mcp/package.json (version)"
+  # MCP: bump its own version
+  run npm --prefix mcp version "$VERSION" --no-git-tag-version
+  echo "    ✓ mcp/package.json (version)"
 
-# MCP: update the dataflare-sdk peer dep to the new version
-if $DRY_RUN; then
-  blue "[dry-run] update mcp/package.json dataflare-sdk dep -> ^$VERSION"
+  # MCP: update the dataflare-sdk dep
+  if $DRY_RUN; then
+    blue "[dry-run] update mcp/package.json dataflare-sdk dep -> ^$VERSION"
+  else
+    node -e "
+      const fs = require('fs');
+      const p = 'mcp/package.json';
+      const pkg = JSON.parse(fs.readFileSync(p, 'utf8'));
+      pkg.dependencies['dataflare-sdk'] = '^$VERSION';
+      fs.writeFileSync(p, JSON.stringify(pkg, null, 2) + '\n');
+    "
+  fi
+  echo "    ✓ mcp/package.json (dataflare-sdk dep)"
+  
+  # Commit version bumps
+  echo ""
+  blue "==> Committing version bumps"
+  run git add typescript/package.json mcp/package.json
+  # Skip commit if nothing changed (re-tagging same version)
+  if git diff --staged --quiet; then
+    echo "    - No version changes to commit (already at $VERSION)"
+  else
+    run git commit -m "chore: release v$VERSION"
+  fi
 else
-  # Use node for safe, precise JSON editing
-  node -e "
-    const fs = require('fs');
-    const p = 'mcp/package.json';
-    const pkg = JSON.parse(fs.readFileSync(p, 'utf8'));
-    pkg.dependencies['dataflare-sdk'] = '^$VERSION';
-    fs.writeFileSync(p, JSON.stringify(pkg, null, 2) + '\n');
-  "
+  echo ""
+  blue "==> Mode: Python Only (skipping JS/TS version bumps and commits)"
 fi
-echo "    ✓ mcp/package.json (dataflare-sdk dep)"
 
-# Python: version is derived from the git tag via hatch-vcs, no file to edit.
-echo "    - python: version comes from git tag (hatch-vcs) — no file change needed"
-
-# ---------- commit -----------------------------------------------------------
+# ---------- tag cleanup & creation -------------------------------------------
 
 echo ""
-blue "==> Committing"
-run git add typescript/package.json mcp/package.json
-run git commit -m "chore: release v$VERSION"
+blue "==> Preparing tags for v$VERSION"
 
-# ---------- tags -------------------------------------------------------------
+if $PYTHON_ONLY; then
+  TAGS=("py/v$VERSION")
+else
+  TAGS=("py/v$VERSION" "ts/v$VERSION" "mcp/v$VERSION")
+fi
 
-echo ""
-blue "==> Creating annotated tags"
-
-TAGS=("py/v$VERSION" "ts/v$VERSION" "mcp/v$VERSION")
 for TAG in "${TAGS[@]}"; do
+  cleanup_tag "$TAG"
   run git tag -a "$TAG" -m "Release $TAG"
-  echo "    ✓ $TAG"
+  echo "    ✓ Tag created: $TAG"
 done
 
 # ---------- push -------------------------------------------------------------
 
 echo ""
-blue "==> Pushing commit + tags"
-run git push origin HEAD
+blue "==> Pushing to origin"
+
+if ! $PYTHON_ONLY; then
+  # Only push HEAD if we (potentially) made a commit
+  run git push origin HEAD
+fi
+
 run git push origin "${TAGS[@]}"
 
 # ---------- done -------------------------------------------------------------
 
 echo ""
 green "==> Release v$VERSION complete!"
+if $PYTHON_ONLY; then
+  echo "    Note: Only Python tags were updated."
+fi
 if $DRY_RUN; then
   echo ""
   blue "This was a dry-run. No changes were committed or pushed."
