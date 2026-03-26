@@ -102,7 +102,7 @@ export class DFClient {
   }
 
   private validateApiKey(apiKey: string): void {
-    const keyRegex = /^dfk_[a-zA-Z0-9]{40}$/;
+    const keyRegex = /^dfk_[a-zA-Z0-9]{40,64}$/;
     if (!keyRegex.test(apiKey)) {
       throw new AuthenticationError("Invalid API Key format.");
     }

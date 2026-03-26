@@ -15,11 +15,11 @@ def _validate_api_key(api_key: Optional[str]) -> str:
         raise ValueError(
             "DF API key must be provided or set as DF_API_KEY environment variable."
         )
-    if not re.match(r"^dfk_[a-zA-Z0-9]{40}$", api_key):
+    if not re.match(r"^dfk_[a-zA-Z0-9]{40,64}$", api_key):
         from .exceptions import AuthenticationError
 
         raise AuthenticationError(
-            "Invalid API Key format. Expected 'dfk_' followed by 40 alphanumeric characters."
+            "Invalid API Key format. Expected 'dfk_' followed by 40-64 alphanumeric characters."
         )
     return api_key
 
