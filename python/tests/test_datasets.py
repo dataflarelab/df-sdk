@@ -12,7 +12,7 @@ def client():
     import os
 
     # Environment variable automatically fetched
-    with patch.dict(os.environ, {"DF_API_KEY": "test_key_123"}):
+    with patch.dict(os.environ, {"DF_API_KEY": "dfk_1234567890abcdef1234567890abcdef12345678"}):
         with DFClient(base_url="https://api.test.com", max_retries=1) as c:
             yield c
 
