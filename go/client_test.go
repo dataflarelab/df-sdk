@@ -1,6 +1,7 @@
 package dataflare
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -24,7 +25,7 @@ func TestDFClient_Query(t *testing.T) {
 	defer server.Close()
 
 	client := NewClient(&ClientOptions{APIKey: "test-key", BaseURL: server.URL})
-	resp, err := client.Datasets.Query("test", nil)
+	resp, err := client.Datasets.Query(context.Background(), "test", nil)
 	if err != nil {
 		t.Fatalf("Query failed: %v", err)
 	}
@@ -56,7 +57,7 @@ func TestDFClient_Stream(t *testing.T) {
 	defer server.Close()
 
 	client := NewClient(&ClientOptions{APIKey: "test-key", BaseURL: server.URL})
-	docChan, errChan := client.Datasets.Stream("test", nil)
+	docChan, errChan := client.Datasets.Stream(context.Background(), "test", nil)
 
 	count := 0
 	for doc := range docChan {
