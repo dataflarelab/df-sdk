@@ -7,6 +7,7 @@ import importlib.metadata
 from .services.datasets import DatasetService
 from .services.async_datasets import AsyncDatasetService
 
+
 def _validate_api_key(api_key: Optional[str]) -> str:
     if not api_key:
         api_key = os.environ.get("DF_API_KEY")
@@ -16,13 +17,16 @@ def _validate_api_key(api_key: Optional[str]) -> str:
         )
     if not re.match(r"^dfk_[a-zA-Z0-9]{40}$", api_key):
         from .exceptions import AuthenticationError
+
         raise AuthenticationError(
             "Invalid API Key format. Expected 'dfk_' followed by 40 alphanumeric characters."
         )
     return api_key
 
+
 def _mask_api_key(api_key: str) -> str:
     return f"{api_key[:4]}****{api_key[-4:]}"
+
 
 try:
     __version__ = importlib.metadata.version("dataflare-sdk")
@@ -111,7 +115,9 @@ class AsyncDFClient:
             },
         )
 
-        self.datasets = AsyncDatasetService(self._http_client, max_retries=self.max_retries)
+        self.datasets = AsyncDatasetService(
+            self._http_client, max_retries=self.max_retries
+        )
 
     async def close(self):
         await self._http_client.aclose()

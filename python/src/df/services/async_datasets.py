@@ -1,5 +1,4 @@
 import httpx
-import asyncio
 from tenacity import (
     AsyncRetrying,
     stop_after_attempt,
@@ -46,7 +45,8 @@ class AsyncDatasetService:
                         raise RateLimitError("Rate limit exceeded.")
                     elif not response.is_success:
                         raise APIError(
-                            f"API Error: {response.text}", status_code=response.status_code
+                            f"API Error: {response.text}",
+                            status_code=response.status_code,
                         )
                     return response
                 except APIError as e:

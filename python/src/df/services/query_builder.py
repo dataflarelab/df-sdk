@@ -1,9 +1,8 @@
-from typing import Optional, Dict, Any, List, TYPE_CHECKING
-from ..models.dataset import DatasetQueryResponse, DatasetDocument
+from typing import Any, TYPE_CHECKING
+from ..models.dataset import DatasetQueryResponse
 
 if TYPE_CHECKING:
-    from .datasets import DatasetService
-    from .async_datasets import AsyncDatasetService
+    pass
 
 
 class QueryBuilder:
@@ -41,7 +40,7 @@ class QueryBuilder:
 
     def execute(self) -> DatasetQueryResponse:
         """
-        Execute the query synchronously. 
+        Execute the query synchronously.
         Note: This only works if the builder was initialized with a sync DatasetService.
         """
         if hasattr(self._service, "query"):
