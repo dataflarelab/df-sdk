@@ -11,23 +11,37 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: '20'
           registry-url: 'https://registry.npmjs.org'
-      
+
+      - name: Validate tag version matches package.json
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"         # mcp/v0.1.9
+          TAG_VERSION="${TAG#mcp/v}"             # 0.1.9
+          PKG_VERSION=$(node -p "require('./mcp/package.json').version")
+          echo "Tag version   : $TAG_VERSION"
+          echo "Package version: $PKG_VERSION"
+          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+            echo "ERROR: Tag version ($TAG_VERSION) does not match mcp/package.json ($PKG_VERSION)"
+            echo "Run ./scripts/release.sh $TAG_VERSION to keep them in sync."
+            exit 1
+          fi
+
       - name: Install & Build TypeScript SDK
         working-directory: typescript
         run: |
           npm install
           npm run build
-          
+
       - name: Install & Build MCP Server
         working-directory: mcp
         run: |
           npm install
           npm run build
-          
+
       - name: Publish to NPM
         working-directory: mcp
         run: npm publish --access public
