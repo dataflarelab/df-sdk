@@ -10,6 +10,7 @@ import logging
 
 from ..models.dataset import DatasetDocument, DatasetQueryResponse
 from ..exceptions import RateLimitError, APIError, AuthenticationError
+from .query_builder import QueryBuilder
 
 logger = logging.getLogger(__name__)
 
@@ -65,6 +66,36 @@ class DatasetService:
                 raise
 
         return _do_request()
+
+    def query(
+        self,
+        dataset: str,
+        search_term: Optional[str] = None,
+        filters: Optional[Dict[str, Any]] = None,
+        limit: int = 100,
+        cursor: Optional[str] = None,
+    ) -> DatasetQueryResponse:
+        """
+        Query documents from a dataset (single page).
+        """
+        payload = {"dataset": dataset, "limit": limit}
+        if search_term:
+            payload["search_term"] = search_term
+        if filters:
+            payload["filters"] = filters
+        if cursor:
+            payload["cursor"] = cursor
+
+        response = self._execute_request_with_retries(
+            "POST", "/v1/datasets", json=payload
+        )
+        return DatasetQueryResponse(**response.json())
+
+    def builder(self, dataset: str) -> QueryBuilder:
+        """
+        Create a fluent QueryBuilder for this dataset.
+        """
+        return QueryBuilder(self, dataset)
 
     def stream(
         self,

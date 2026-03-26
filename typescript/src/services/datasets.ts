@@ -1,4 +1,3 @@
-import { AxiosInstance } from 'axios';
 import * as fs from 'fs';
 import * as path from 'path';
 import { 
@@ -7,13 +6,42 @@ import {
   DatasetQueryResponseSchema 
 } from '../models/dataset';
 import { APIError } from '../exceptions';
+import { QueryBuilder } from './query-builder';
+import type { DFClient } from '../client';
 
 export class DatasetService {
-  constructor(private readonly axios: AxiosInstance) {}
+  constructor(private readonly client: DFClient) {}
+
+  /**
+   * Create a fluent QueryBuilder for this dataset.
+   */
+  builder(dataset: string): QueryBuilder {
+    return new QueryBuilder(this, dataset);
+  }
+
+  /**
+   * Query documents from a dataset (single page).
+   */
+  async query(
+    dataset: string,
+    options: Omit<DatasetQueryRequest, 'dataset'> = {}
+  ): Promise<ReturnType<typeof DatasetQueryResponseSchema.parse>> {
+    try {
+      const data = await this.client.request('/v1/datasets', {
+        method: 'POST',
+        body: JSON.stringify({ dataset, ...options }),
+      });
+      return DatasetQueryResponseSchema.parse(data);
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        throw new APIError(`Validation failed: ${error.message}`);
+      }
+      throw error;
+    }
+  }
 
   /**
    * Stream documents from a dataset using an async generator.
-   * Handles pagination automatically via cursors.
    */
   async *stream(
     dataset: string,
@@ -22,31 +50,14 @@ export class DatasetService {
     let cursor: string | undefined = undefined;
 
     while (true) {
-      try {
-        const response = await this.axios.post('/v1/datasets', {
-          dataset,
-          ...options,
-          cursor,
-        });
-
-        const parsed = DatasetQueryResponseSchema.parse(response.data);
-
-        for (const doc of parsed.data) {
-          yield doc;
-        }
-
-        if (!parsed.next_cursor) {
-          break;
-        }
-
-        cursor = parsed.next_cursor;
-      } catch (error: any) {
-        // Validation errors (Zod) should be wrapped in APIError or rethrown
-        if (error.name === 'ZodError') {
-          throw new APIError(`Validation failed: ${error.message}`);
-        }
-        throw error;
+      const result = await this.query(dataset, { ...options, cursor });
+      
+      for (const doc of result.data) {
+        yield doc;
       }
+
+      if (!result.next_cursor) break;
+      cursor = result.next_cursor;
     }
   }
 
@@ -62,32 +73,25 @@ export class DatasetService {
     }
 
     try {
-      const response = await this.axios({
-        method: 'GET',
-        url,
-        responseType: 'stream',
-        // Important: we don't want auth headers leaked to third-party links (S3, etc.)
-        // but if the URL is internal, the client should have headers.
-        // For downloads, typically we don't want the default headers if it's a presigned URL.
-        headers: { 'X-API-Key': undefined } 
-      });
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`Status ${response.status}`);
+      if (!response.body) throw new Error('ReadableStream not available');
 
       const writer = fs.createWriteStream(absolutePath);
+      const reader = response.body.getReader();
 
-      return new Promise((resolve, reject) => {
-        response.data.pipe(writer);
-        let error: Error | null = null;
-        writer.on('error', (err) => {
-          error = err;
-          writer.close();
-          reject(err);
-        });
-        writer.on('close', () => {
-          if (!error) {
-            resolve();
+      const pump = async () => {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) {
+            writer.end();
+            break;
           }
-        });
-      });
+          writer.write(Buffer.from(value));
+        }
+      };
+
+      await pump();
     } catch (error: any) {
       throw new APIError(`File download failed: ${error.message}`);
     }
