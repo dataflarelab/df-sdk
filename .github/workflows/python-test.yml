@@ -8,6 +8,9 @@ on:
     branches: [ "main" ]
     paths: [ "python/**" ]
 
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
