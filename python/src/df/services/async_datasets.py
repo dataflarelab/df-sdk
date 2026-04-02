@@ -112,7 +112,7 @@ class AsyncDatasetService:
                 fields=fields,
                 limit=limit,
                 offset=offset,
-                cursor=cursor
+                cursor=cursor,
             )
 
             for doc in response.data:
