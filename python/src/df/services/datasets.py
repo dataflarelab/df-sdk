@@ -3,9 +3,8 @@ from tenacity import (
     retry,
     stop_after_attempt,
     wait_exponential,
-    retry_if_exception_type,
 )
-from typing import Iterator, Optional, Dict, Any
+from typing import Iterator, Optional, Dict, Any, List
 import logging
 
 from ..models.dataset import DatasetDocument, DatasetQueryResponse

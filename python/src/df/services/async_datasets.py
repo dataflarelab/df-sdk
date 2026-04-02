@@ -5,7 +5,7 @@ from tenacity import (
     wait_exponential,
     retry_if_exception_type,
 )
-from typing import AsyncIterator, Optional, Dict, Any
+from typing import AsyncIterator, Optional, Dict, Any, List
 import logging
 import os
 
