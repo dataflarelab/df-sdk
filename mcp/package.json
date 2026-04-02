@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "latest",
-    "dataflare-sdk": "^0.1.10",
+    "dataflare-sdk": "file:../typescript",
     "zod": "^3.23.0"
   },
   "devDependencies": {
