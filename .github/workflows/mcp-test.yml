@@ -28,12 +28,11 @@ jobs:
         run: |
           npm install
           npm run build
-          npm link
       - name: Install & Build MCP Server
         working-directory: mcp
         run: |
+          sed -i 's/"dataflare-sdk": ".*"/"dataflare-sdk": "file:..\/typescript"/' package.json
           npm install
-          npm link dataflare-sdk
           npm run typecheck
           npm run build
           npm test
