@@ -5,6 +5,7 @@ go 1.25.0
 require google.golang.org/grpc v1.79.3
 
 require (
+	github.com/dataflarelab/df-sdk/go v0.1.10
 	golang.org/x/net v0.48.0 // indirect
 	golang.org/x/sys v0.39.0 // indirect
 	golang.org/x/text v0.32.0 // indirect

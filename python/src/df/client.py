@@ -34,6 +34,14 @@ except importlib.metadata.PackageNotFoundError:
     __version__ = "unknown"
 
 
+try:
+    from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
+
+    _HAS_OTEL = True
+except ImportError:
+    _HAS_OTEL = False
+
+
 class DFClient:
     """
     The official DF (DataFlare) API Client.
@@ -69,6 +77,9 @@ class DFClient:
                 "User-Agent": f"df-python/{__version__}",
             },
         )
+
+        if _HAS_OTEL:
+            HTTPXClientInstrumentor().instrument_client(self._http_client)
 
         # Initialize services
         self.datasets = DatasetService(self._http_client, max_retries=self.max_retries)
@@ -114,6 +125,9 @@ class AsyncDFClient:
                 "User-Agent": f"df-python/{__version__}",
             },
         )
+
+        if _HAS_OTEL:
+            HTTPXClientInstrumentor().instrument_client(self._http_client)
 
         self.datasets = AsyncDatasetService(
             self._http_client, max_retries=self.max_retries

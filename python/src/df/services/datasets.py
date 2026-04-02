@@ -20,6 +20,7 @@ class DatasetService:
         self._client = http_client
         self.max_retries = max_retries
 
+    @staticmethod
     def _should_retry_error(exc: Exception) -> bool:
         if isinstance(exc, RateLimitError):
             return True
@@ -32,12 +33,12 @@ class DatasetService:
     def _execute_request_with_retries(
         self, method: str, path: str, **kwargs
     ) -> httpx.Response:
+        from tenacity import retry_if_exception
+
         @retry(
             stop=stop_after_attempt(self.max_retries),
             wait=wait_exponential(multiplier=1, min=1, max=10),
-            retry=retry_if_exception_type(
-                (RateLimitError, httpx.RequestError, httpx.TimeoutException)
-            ),
+            retry=retry_if_exception(self._should_retry_error),
         )
         def _do_request():
             try:
@@ -67,12 +68,21 @@ class DatasetService:
 
         return _do_request()
 
+    def list(self) -> List[str]:
+        """
+        List available datasets.
+        """
+        response = self._execute_request_with_retries("GET", "/v1/datasets/list")
+        return response.json().get("datasets", [])
+
     def query(
         self,
         dataset: str,
         search_term: Optional[str] = None,
         filters: Optional[Dict[str, Any]] = None,
+        fields: Optional[List[str]] = None,
         limit: int = 100,
+        offset: int = 0,
         cursor: Optional[str] = None,
     ) -> DatasetQueryResponse:
         """
@@ -83,6 +93,10 @@ class DatasetService:
             payload["search_term"] = search_term
         if filters:
             payload["filters"] = filters
+        if fields:
+            payload["fields"] = fields
+        if offset > 0:
+            payload["offset"] = offset
         if cursor:
             payload["cursor"] = cursor
 
@@ -102,7 +116,9 @@ class DatasetService:
         dataset: str,
         search_term: Optional[str] = None,
         filters: Optional[Dict[str, Any]] = None,
+        fields: Optional[List[str]] = None,
         limit: int = 100,
+        offset: int = 0,
     ) -> Iterator[DatasetDocument]:
         """
         Stream documents from a dataset. Handles pagination automatically.
@@ -110,7 +126,9 @@ class DatasetService:
         :param dataset: The dataset name (e.g. 'legal')
         :param search_term: Optional Arabic search text
         :param filters: Optional strict matching keys
+        :param fields: Optional fields to include
         :param limit: Page chunk limit
+        :param offset: Search offset
         """
         cursor = None
 
@@ -120,6 +138,10 @@ class DatasetService:
                 payload["search_term"] = search_term
             if filters:
                 payload["filters"] = filters
+            if fields:
+                payload["fields"] = fields
+            if offset > 0:
+                payload["offset"] = offset
             if cursor:
                 payload["cursor"] = cursor
 

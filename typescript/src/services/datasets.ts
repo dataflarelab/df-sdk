@@ -20,6 +20,16 @@ export class DatasetService {
   }
 
   /**
+   * List available datasets.
+   */
+  async list(): Promise<string[]> {
+    const data = await this.client.request('/v1/datasets/list', {
+      method: 'GET',
+    });
+    return data.datasets || [];
+  }
+
+  /**
    * Query documents from a dataset (single page).
    */
   async query(

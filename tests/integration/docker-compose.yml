@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  # Mock API server for SDK testing
+  api-mock:
+    image: stoplight/prism:4
+    command: mock -h 0.0.0.0 -p 4010 /api/openapi.yaml
+    volumes:
+      - ./openapi.yaml:/api/openapi.yaml
+    ports:
+      - "4010:4010"
+
+  # Integration test runners
+  test-python:
+    build: 
+      context: ../../
+      dockerfile: tests/integration/python/Dockerfile
+    environment:
+      - DF_API_KEY=dfk_test_key_1234567890123456789012345678901234567890
+      - DF_BASE_URL=http://api-mock:4010
+    depends_on:
+      - api-mock
+
+  test-typescript:
+    build:
+      context: ../../
+      dockerfile: tests/integration/typescript/Dockerfile
+    environment:
+      - DF_API_KEY=dfk_test_key_1234567890123456789012345678901234567890
+      - DF_BASE_URL=http://api-mock:4010
+    depends_on:
+      - api-mock

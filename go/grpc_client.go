@@ -3,8 +3,10 @@ package dataflare
 import (
 	"context"
 	"os"
+	"strings"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 )
@@ -23,7 +25,14 @@ func NewGRPCClient(target string) (*DFGRPCClient, error) {
 		target = "rpc.dataflare.com:443"
 	}
 
-	conn, err := grpc.Dial(target, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	var opts []grpc.DialOption
+	if strings.Contains(target, "localhost") || strings.Contains(target, "127.0.0.1") || os.Getenv("DF_INSECURE") == "true" {
+		opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	} else {
+		opts = append(opts, grpc.WithTransportCredentials(credentials.NewTLS(nil)))
+	}
+
+	conn, err := grpc.NewClient(target, opts...)
 	if err != nil {
 		return nil, err
 	}

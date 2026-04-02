@@ -15,20 +15,13 @@ export function registerGetDocument(server: McpServer) {
       try {
         const client = getClient();
         
-        // Use client.datasets.stream with limit 1 as suggested in prompt
-        const stream = client.datasets.stream(dataset, { 
-          limit: 1 
-          // Note: If the SDK supports an 'id' filter in options, it should be used here.
-          // The prompt says "filtered by ID, OR call a direct /datasets/{dataset}/{id} endpoint if it exists"
+        // Use filtered query instead of O(n) stream scan
+        const result = await client.datasets.query(dataset, {
+          filters: { id: document_id },
+          limit: 1,
         });
 
-        let foundDoc: any = null;
-        for await (const doc of stream) {
-          if (doc.id === document_id) {
-            foundDoc = doc;
-            break;
-          }
-        }
+        const foundDoc = result.data[0] ?? null;
 
         if (!foundDoc) {
           return {

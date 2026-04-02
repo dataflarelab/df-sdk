@@ -139,7 +139,7 @@ blue "==> Preparing tags for v$VERSION"
 if $PYTHON_ONLY; then
   TAGS=("py/v$VERSION")
 else
-  TAGS=("py/v$VERSION" "ts/v$VERSION" "mcp/v$VERSION")
+  TAGS=("py/v$VERSION" "ts/v$VERSION" "mcp/v$VERSION" "go/v$VERSION")
 fi
 
 for TAG in "${TAGS[@]}"; do

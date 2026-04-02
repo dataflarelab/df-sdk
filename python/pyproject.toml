@@ -30,6 +30,10 @@ grpc = [
     "grpcio>=1.60.0",
     "grpc-requests>=0.1.20"
 ]
+otel = [
+    "opentelemetry-api>=1.20.0",
+    "opentelemetry-instrumentation-httpx>=0.40b0"
+]
 dev = [
     "pytest>=8.0.0",
     "respx>=0.21.1",

@@ -59,7 +59,9 @@ class AsyncDatasetService:
         dataset: str,
         search_term: Optional[str] = None,
         filters: Optional[Dict[str, Any]] = None,
+        fields: Optional[List[str]] = None,
         limit: int = 100,
+        offset: int = 0,
         cursor: Optional[str] = None,
     ) -> DatasetQueryResponse:
         """
@@ -70,6 +72,10 @@ class AsyncDatasetService:
             payload["search_term"] = search_term
         if filters:
             payload["filters"] = filters
+        if fields:
+            payload["fields"] = fields
+        if offset > 0:
+            payload["offset"] = offset
         if cursor:
             payload["cursor"] = cursor
 
@@ -89,7 +95,9 @@ class AsyncDatasetService:
         dataset: str,
         search_term: Optional[str] = None,
         filters: Optional[Dict[str, Any]] = None,
+        fields: Optional[List[str]] = None,
         limit: int = 100,
+        offset: int = 0,
     ) -> AsyncIterator[DatasetDocument]:
         """
         Stream documents from a dataset. Handles pagination automatically.
@@ -98,7 +106,13 @@ class AsyncDatasetService:
 
         while True:
             response = await self.query(
-                dataset, search_term, filters, limit, cursor=cursor
+                dataset,
+                search_term=search_term,
+                filters=filters,
+                fields=fields,
+                limit=limit,
+                offset=offset,
+                cursor=cursor
             )
 
             for doc in response.data:

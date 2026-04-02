@@ -1,7 +1,9 @@
 package dataflare
 
 import (
-	"fmt"
+	"context"
+
+	"github.com/dataflarelab/df-sdk/go/models"
 )
 
 // QueryBuilder provides a fluent interface for building dataset queries.
@@ -10,7 +12,9 @@ type QueryBuilder struct {
 	dataset string
 	search  string
 	filters map[string]interface{}
+	fields  []string
 	limit   int
+	offset  int
 }
 
 // NewQueryBuilder creates a new QueryBuilder instance.
@@ -34,30 +38,41 @@ func (b *QueryBuilder) Where(key string, value interface{}) *QueryBuilder {
 	return b
 }
 
+// Fields sets the fields to include in the query results.
+func (b *QueryBuilder) Fields(fields []string) *QueryBuilder {
+	b.fields = fields
+	return b
+}
+
 // Limit sets the maximum number of results to return.
 func (b *QueryBuilder) Limit(limit int) *QueryBuilder {
 	b.limit = limit
 	return b
 }
 
-// Params returns the query parameters as a map.
-func (b *QueryBuilder) Params() map[string]interface{} {
-	params := make(map[string]interface{})
-	if b.search != "" {
-		params["search"] = b.search
+// Offset sets the number of results to skip.
+func (b *QueryBuilder) Offset(offset int) *QueryBuilder {
+	b.offset = offset
+	return b
+}
+
+// Params returns the query parameters as QueryOptions.
+func (b *QueryBuilder) Params() *models.QueryOptions {
+	return &models.QueryOptions{
+		SearchTerm: b.search,
+		Filters:    b.filters,
+		Fields:     b.fields,
+		Limit:      b.limit,
+		Offset:     b.offset,
 	}
-	if b.limit > 0 {
-		params["limit"] = b.limit
-	}
-	for k, v := range b.filters {
-		params[k] = v
-	}
-	return params
 }
 
 // Execute executes the built query.
-func (b *QueryBuilder) Execute() ([]interface{}, error) {
-	fmt.Printf("Executing query on dataset '%s' with params: %+v\n", b.dataset, b.Params())
-	// In a real implementation, this would call b.service.Query(...)
-	return []interface{}{}, nil
+func (b *QueryBuilder) Execute(ctx context.Context) (*models.DatasetResponse, error) {
+	return b.service.Query(ctx, b.dataset, b.Params())
+}
+
+// Stream performs a streaming paginated query on a dataset.
+func (b *QueryBuilder) Stream(ctx context.Context) (<-chan models.Document, <-chan error) {
+	return b.service.Stream(ctx, b.dataset, b.Params())
 }

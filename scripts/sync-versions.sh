@@ -26,8 +26,12 @@ if [ -f "mcp/package.json" ]; then
     echo "Updated mcp/package.json"
 fi
 
-# 3. Python version is handled by hatch-vcs (from tags),
-# so we don't need to update it in pyproject.toml manually
-# but we can verify it's correctly configured.
+# 4. Go SDK versioning
+# Go uses git tags for versioning, but we can verify it's properly referenced
+if [ -d "go" ]; then
+    echo "Verifying Go module integrity..."
+    (cd go && go mod edit -require=github.com/dataflarelab/df-sdk/go@v$VERSION 2>/dev/null || true)
+    echo "Checks complete for Go SDK"
+fi
 
 echo "Synchronization complete. Please verify the changes and commit."

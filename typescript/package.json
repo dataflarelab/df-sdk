@@ -1,6 +1,6 @@
 {
   "name": "dataflare-sdk",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "description": "Official TypeScript SDK for Dataflare API",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -33,17 +33,23 @@
   "dependencies": {
     "@grpc/grpc-js": "^1.14.3",
     "@grpc/proto-loader": "^0.8.0",
-    "axios": "^1.13.6",
     "google-protobuf": "^4.0.2",
     "grpc-js-reflection-client": "^1.3.5",
     "zod": "^3.24.2"
   },
   "devDependencies": {
     "@types/node": "^22.13.5",
-    "axios-mock-adapter": "^2.1.0",
     "ts-node": "^10.9.2",
     "tsup": "^8.4.0",
     "typescript": "^5.7.3",
     "vitest": "^3.0.7"
+  },
+  "peerDependencies": {
+    "@opentelemetry/api": "^1.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@opentelemetry/api": {
+      "optional": true
+    }
   }
 }

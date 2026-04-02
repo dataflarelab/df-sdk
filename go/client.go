@@ -9,6 +9,7 @@ import (
 	"math"
 	"net/http"
 	"os"
+	"regexp"
 	"time"
 
 	"github.com/dataflarelab/df-sdk/go/models"
@@ -44,6 +45,13 @@ func NewClient(opts *ClientOptions) *DFClient {
 		apiKey = os.Getenv("DF_API_KEY")
 	}
 
+	// Validate API key format
+	if apiKey != "" {
+		if err := validateAPIKey(apiKey); err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: %v\n", err)
+		}
+	}
+
 	c := &DFClient{
 		APIKey:  apiKey,
 		BaseURL: baseURL,
@@ -60,21 +68,34 @@ func NewClient(opts *ClientOptions) *DFClient {
 	return c
 }
 
+func validateAPIKey(key string) error {
+	matched, _ := regexp.MatchString(`^dfk_[a-zA-Z0-9]{40,64}$`, key)
+	if !matched {
+		return fmt.Errorf("invalid API key format: expected dfk_ prefix followed by 40-64 alphanumeric characters")
+	}
+	return nil
+}
+
 // request performs an HTTP request with exponential backoff retries.
 func (c *DFClient) request(ctx context.Context, method, path string, body interface{}) ([]byte, error) {
-	var bodyReader io.Reader
+	var jsonBody []byte
 	if body != nil {
-		jsonBody, err := json.Marshal(body)
+		var err error
+		jsonBody, err = json.Marshal(body)
 		if err != nil {
 			return nil, err
 		}
-		bodyReader = bytes.NewBuffer(jsonBody)
 	}
 
 	url := fmt.Sprintf("%s%s", c.BaseURL, path)
 	maxRetries := 3
 
 	for attempt := 0; attempt <= maxRetries; attempt++ {
+		var bodyReader io.Reader
+		if jsonBody != nil {
+			bodyReader = bytes.NewReader(jsonBody)
+		}
+
 		req, err := http.NewRequestWithContext(ctx, method, url, bodyReader)
 		if err != nil {
 			return nil, err
@@ -139,11 +160,30 @@ func (s *DatasetService) Builder(dataset string) *QueryBuilder {
 }
 
 // Query performs a paginated query on a dataset.
-func (s *DatasetService) Query(ctx context.Context, dataset string, params map[string]interface{}) (*models.DatasetResponse, error) {
-	if params == nil {
-		params = make(map[string]interface{})
-	}
+func (s *DatasetService) Query(ctx context.Context, dataset string, opts *models.QueryOptions) (*models.DatasetResponse, error) {
+	params := make(map[string]interface{})
 	params["dataset"] = dataset
+
+	if opts != nil {
+		if opts.SearchTerm != "" {
+			params["search_term"] = opts.SearchTerm
+		}
+		if opts.Limit > 0 {
+			params["limit"] = opts.Limit
+		}
+		if opts.Offset > 0 {
+			params["offset"] = opts.Offset
+		}
+		if opts.Cursor != "" {
+			params["cursor"] = opts.Cursor
+		}
+		if len(opts.Fields) > 0 {
+			params["fields"] = opts.Fields
+		}
+		for k, v := range opts.Filters {
+			params[k] = v
+		}
+	}
 
 	respData, err := s.client.request(ctx, "POST", "/v1/datasets", params)
 	if err != nil {
@@ -159,25 +199,23 @@ func (s *DatasetService) Query(ctx context.Context, dataset string, params map[s
 }
 
 // Stream performs a streaming paginated query on a dataset, returning a document channel and an error channel.
-func (s *DatasetService) Stream(ctx context.Context, dataset string, params map[string]interface{}) (<-chan models.Document, <-chan error) {
+func (s *DatasetService) Stream(ctx context.Context, dataset string, opts *models.QueryOptions) (<-chan models.Document, <-chan error) {
 	docChan := make(chan models.Document)
 	errChan := make(chan error, 1)
 
-	if params == nil {
-		params = make(map[string]interface{})
+	if opts == nil {
+		opts = &models.QueryOptions{}
 	}
 
 	go func() {
 		defer close(docChan)
 		defer close(errChan)
 
-		cursor := ""
-		for {
-			if cursor != "" {
-				params["cursor"] = cursor
-			}
+		// Create a copy of options to avoid mutating the original
+		streamOpts := *opts
 
-			resp, err := s.Query(ctx, dataset, params)
+		for {
+			resp, err := s.Query(ctx, dataset, &streamOpts)
 			if err != nil {
 				errChan <- err
 				return
@@ -195,7 +233,7 @@ func (s *DatasetService) Stream(ctx context.Context, dataset string, params map[
 			if resp.NextCursor == "" {
 				break
 			}
-			cursor = resp.NextCursor
+			streamOpts.Cursor = resp.NextCursor
 		}
 	}()
 

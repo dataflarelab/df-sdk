@@ -6,7 +6,9 @@ export class QueryBuilder {
   private _dataset: string;
   private _searchTerm?: string;
   private _filters: Record<string, any> = {};
+  private _fields?: string[];
   private _limit: number = 100;
+  private _offset?: number;
   private _cursor?: string;
 
   constructor(service: DatasetService, dataset: string) {
@@ -24,8 +26,18 @@ export class QueryBuilder {
     return this;
   }
 
+  fields(projection: string[]): this {
+    this._fields = projection;
+    return this;
+  }
+
   limit(count: number): this {
     this._limit = count;
+    return this;
+  }
+
+  offset(n: number): this {
+    this._offset = n;
     return this;
   }
 
@@ -38,7 +50,9 @@ export class QueryBuilder {
     return this._service.query(this._dataset, {
       search_term: this._searchTerm,
       filters: this._filters,
+      fields: this._fields,
       limit: this._limit,
+      offset: this._offset,
       cursor: this._cursor,
     });
   }
@@ -53,7 +67,9 @@ export class QueryBuilder {
       const result = await this._service.query(this._dataset, {
         search_term: this._searchTerm,
         filters: this._filters,
+        fields: this._fields,
         limit: this._limit,
+        offset: this._offset,
         cursor: currentCursor,
       });
 

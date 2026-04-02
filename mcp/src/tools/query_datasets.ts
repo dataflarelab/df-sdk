@@ -17,32 +17,26 @@ export function registerQueryDatasets(server: McpServer) {
     async ({ dataset, search_term, limit, cursor }) => {
       try {
         const client = getClient();
-        const results: any[] = [];
         
-        // Use client.datasets.stream (collect into array as per prompt)
-        const stream = client.datasets.stream(dataset, { 
-          search_term, 
-          limit 
+        // Use single-page query instead of stream to preserve cursor for AI agent
+        const result = await client.datasets.query(dataset, {
+          search_term,
+          limit,
+          cursor,
         });
 
-        for await (const doc of stream) {
-          results.push(doc);
-        }
-
-        // Note: The stream API might not expose the cursor directly in this simplified wrapper
-        // If the real SDK provides a way to get the next cursor, it should be used here.
-        // For now, we follow the prompt's structural requirement.
-        
         return {
           content: [
             {
               type: "text",
-              text: formatResults(dataset, results),
+              text: formatResults(dataset, result.data, result.next_cursor ?? undefined),
             },
           ],
           structuredData: {
-            documents: results,
+            documents: result.data,
             dataset,
+            next_cursor: result.next_cursor ?? null,
+            count: result.count,
           },
           annotations: { readOnlyHint: true, openWorldHint: true },
         };

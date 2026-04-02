@@ -1,10 +1,10 @@
 export interface Document {
-  id: string;
-  title: string;
-  category: string;
+  id?: string;
+  title?: string;
+  category?: string;
   decision?: string;
-  summary: string;
-  source_url: string;
+  summary?: string;
+  source_url?: string;
   [key: string]: any;
 }
 

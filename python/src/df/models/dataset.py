@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional, Dict, Any, List
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, AliasChoices
 
 
 class DatasetQueryRequest(BaseModel):
@@ -12,7 +12,7 @@ class DatasetQueryRequest(BaseModel):
 
 
 class DatasetDocument(BaseModel):
-    id: Optional[str] = Field(default=None, alias="_id")
+    id: Optional[str] = Field(default=None, validation_alias=AliasChoices("id", "_id"))
     text: Optional[str] = None
     metadata: Optional[Dict[str, Any]] = Field(default_factory=dict)
     source_url: Optional[str] = None
@@ -24,5 +24,6 @@ class DatasetDocument(BaseModel):
 class DatasetQueryResponse(BaseModel):
     data: List[DatasetDocument]
     count: int
+    total_count: Optional[int] = None
     next_cursor: Optional[str] = None
     latency: Optional[str] = None

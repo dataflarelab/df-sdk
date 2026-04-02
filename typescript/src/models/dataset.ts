@@ -16,6 +16,8 @@ export const DatasetQueryRequestSchema = z.object({
   cursor: z.string().optional(),
   search_term: z.string().optional(),
   filters: z.record(z.string(), z.any()).optional(),
+  fields: z.array(z.string()).optional(),
+  offset: z.number().min(0).optional(),
 });
 
 export type DatasetQueryRequest = z.infer<typeof DatasetQueryRequestSchema>;
@@ -23,6 +25,7 @@ export type DatasetQueryRequest = z.infer<typeof DatasetQueryRequestSchema>;
 export const DatasetQueryResponseSchema = z.object({
   data: z.array(DatasetDocumentSchema),
   count: z.number().optional().default(0),
+  total_count: z.number().optional(),
   next_cursor: z.string().nullable().optional(),
   latency: z.string().optional(),
 });

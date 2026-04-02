@@ -1,0 +1,42 @@
+openapi: 3.0.0
+info:
+  title: Dataflare API Mock
+  version: 0.1.10
+paths:
+  /v1/datasets:
+    post:
+      summary: Query datasets
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [dataset]
+              properties:
+                dataset: { type: string }
+                limit: { type: integer }
+                cursor: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { type: array, items: { type: object } }
+                  count: { type: integer }
+                  total_count: { type: integer }
+                  next_cursor: { type: string }
+  /v1/datasets/list:
+    get:
+      summary: List datasets
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  datasets: { type: array, items: { type: string } }

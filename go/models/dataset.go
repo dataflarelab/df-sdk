@@ -20,7 +20,18 @@ type DatasetResponse struct {
 	Dataset    string     `json:"dataset"`
 	Data       []Document `json:"data"`
 	Count      int        `json:"count"`
+	TotalCount int64      `json:"total_count"`
 	NextCursor string     `json:"next_cursor"`
 	Latency    string     `json:"latency"`
 	Fields     []string   `json:"fields"`
+}
+
+// QueryOptions represents the parameters for querying a dataset.
+type QueryOptions struct {
+	SearchTerm string
+	Filters    map[string]interface{}
+	Fields     []string
+	Limit      int
+	Offset     int
+	Cursor     string
 }

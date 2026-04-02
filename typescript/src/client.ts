@@ -1,5 +1,6 @@
 import { DatasetService } from './services/datasets';
 import { AuthenticationError, RateLimitError, APIError } from './exceptions';
+import { version } from '../package.json';
 
 /**
  * Options for initializing the DFClient.
@@ -37,12 +38,46 @@ export class DFClient {
    * Internal request helper with retries and exponential backoff using native fetch.
    */
   public async request(path: string, options: RequestInit = {}): Promise<any> {
+    // Optional OTel instrumentation (zero-cost if not available)
+    let span: any;
+    try {
+      // @ts-ignore
+      const { trace } = await import('@opentelemetry/api');
+      if (trace) {
+        const tracer = trace.getTracer('dataflare-sdk', version);
+        span = tracer.startSpan(`df.api.${path.split('/').pop()}`, {
+          attributes: {
+            'http.method': options.method || 'GET',
+            'http.url': `${this.baseUrl}${path}`,
+            'lib.version': version,
+          },
+        });
+      }
+    } catch (e) {
+      /* ignore if @opentelemetry/api is not present */
+    }
+
+    try {
+      const result = await this._executeRequest(path, options);
+      if (span) span.end();
+      return result;
+    } catch (error: any) {
+      if (span) {
+        span.recordException(error);
+        span.setStatus({ code: 2, message: error.message });
+        span.end();
+      }
+      throw error;
+    }
+  }
+
+  private async _executeRequest(path: string, options: RequestInit = {}): Promise<any> {
     const url = `${this.baseUrl}${path}`;
     const headers = {
       'X-API-Key': this.apiKey,
       'Accept': 'application/json',
       'Content-Type': 'application/json',
-      'User-Agent': `df-typescript/fetch`,
+      'User-Agent': `df-typescript/${version}`,
       ...options.headers,
     };
 
@@ -85,7 +120,7 @@ export class DFClient {
         await this.backoff(attempt);
       } catch (error: any) {
         lastError = error;
-        if (error instanceof AuthenticationError || error instanceof APIError && error.statusCode && error.statusCode < 500 && error.statusCode !== 429) {
+        if (error instanceof AuthenticationError || (error instanceof APIError && error.statusCode && error.statusCode < 500 && error.statusCode !== 429)) {
           throw error;
         }
         
