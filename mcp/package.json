@@ -1,6 +1,6 @@
 {
   "name": "dataflare-mcp-server",
-  "version": "0.1.10",
+  "version": "0.1.9",
   "description": "MCP server for the Dataflare API — exposes dataset tools to AI agents",
   "license": "MIT",
   "type": "module",
@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "latest",
-    "dataflare-sdk": "file:../typescript",
+    "dataflare-sdk": "^0.1.9",
     "zod": "^3.23.0"
   },
   "devDependencies": {
