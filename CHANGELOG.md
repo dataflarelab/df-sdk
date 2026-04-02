@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.1.9] - 2026-04-02
+## [0.1.10] - 2026-04-02
 
 ### Added
 - **All SDKs**: Added `fields` (server-side projection) and `offset` (pagination skip) parameters to `query` and `stream` methods.
@@ -22,7 +22,7 @@
 - **MCP**: Fixed `get_document` tool to use a filtered query instead of an inefficient $O(n)$ stream scan.
 - **MCP**: Fixed `query_datasets` tool to return the pagination cursor to the AI agent.
 
-## [0.1.9] - 2026-03-25
+## [0.1.10] - 2026-03-25
 - Foundation release: Typescript, Python, Go clients.
 - MCP Server introduction.
 - Unified release pipeline.
